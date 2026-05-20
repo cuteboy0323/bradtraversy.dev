@@ -1,0 +1,227 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Latest article (most recent non-draft)
+const articles = await getCollection('articles', ({ data }) => !data.draft || import.meta.env.DEV);
+const latestArticle = articles
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())[0];
+
+// Recent devlog (3 most recent non-draft)
+const devlogEntries = await getCollection('devlog', ({ data }) => !data.draft || import.meta.env.DEV);
+const recentDevlog = devlogEntries
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 3);
+
+// Currently building — featured projects (with sensible fallback to active status)
+const ACTIVE_STATUSES = ['alpha', 'beta', 'live'];
+const allProjects = await getCollection('projects');
+const currentlyBuilding = allProjects
+  .filter(
+    (p) => p.data.featured || ACTIVE_STATUSES.includes(p.data.status),
+  )
+  .sort((a, b) => {
+    if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+    return b.data.publishDate.valueOf() - a.data.publishDate.valueOf();
+  })
+  .slice(0, 4);
+
+// Latest tools strip (5 newest, non-archived)
+const allTools = await getCollection('tools');
+const latestTools = allTools
+  .filter((t) => !t.data.archived)
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 5);
+
+const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
+---
+
+<BaseLayout
+  title="brad traversy — projects, tools, devlog, and articles"
+  pageTitle="home.md"
+  currentSection="home"
+>
+  <!-- HERO -->
+  <section class="section">
+    <h1 class="h1"><span class="hash"># </span>brad traversy</h1>
+    <p class="lede">
+      a public lab for anyone who wants to follow my daily work, side projects, and what i'm shipping
+      outside of <a href="https://traversymedia.com" class="link">traversy media</a>.
+      projects, tools, devlog, and articles — all in one place.
+    </p>
+  </section>
+
+  <!-- CURRENTLY BUILDING (projects) -->
+  {
+    currentlyBuilding.length > 0 && (
+      <section class="section">
+        <h2 class="h2"><span class="hash">## </span>currently building</h2>
+        <div class="comment">
+          // see <a href="/now" class="link">/now</a> for full status
+        </div>
+        <div class="card-grid">
+          {currentlyBuilding.map((project) => (
+            <a class="card" href={`/projects/${project.id}`}>
+              <div class="card-title">{project.data.name}</div>
+              <div class="card-status">
+                <span class:list={['pill', project.data.status]}>{project.data.status}</span>
+                {project.data.badge && (
+                  <span class:list={['pill', project.data.badge]}>{project.data.badge}</span>
+                )}
+              </div>
+              <div class="card-meta">{project.data.tagline}</div>
+            </a>
+          ))}
+        </div>
+        <a href="/projects" class="link more-link">→ all projects</a>
+      </section>
+    )
+  }
+
+  <!-- LATEST TOOLS -->
+  {
+    latestTools.length > 0 && (
+      <section class="section">
+        <h2 class="h2">
+          <span class="hash">## </span>latest tools
+        </h2>
+        <div class="comment">
+          // small one-day utilities — each gets its own page
+        </div>
+        <div>
+          {latestTools.map((tool) => (
+            <div class="tools-row">
+              <a class="name" href={`/tools/${tool.id}`}>
+                {tool.data.name}
+              </a>
+              <div class="desc">{tool.data.tagline}</div>
+              <div class="status-cell">
+                <span class:list={['pill', `kind-${tool.data.kind}`]}>
+                  {tool.data.kind}
+                </span>
+                {tool.data.free === false && (
+                  <span class="pill paid">paid</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <a href="/tools" class="link more-link">→ all tools</a>
+      </section>
+    )
+  }
+
+  <!-- RECENT DEVLOG -->
+  {
+    recentDevlog.length > 0 && (
+      <section class="section">
+        <h2 class="h2">
+          <span class="hash">## </span>recent devlog
+        </h2>
+        <div class="comment">// pulled from /devlog — most recent first</div>
+        <div>
+          {recentDevlog.map((entry) => (
+            <div class="devlog-row">
+              <span class="date">{fmtDate(entry.data.publishDate)}</span>
+              <a class="title" href={`/devlog/${entry.id}`}>
+                {entry.data.title}
+              </a>
+              {entry.data.project && <span class="tag">#{entry.data.project}</span>}
+            </div>
+          ))}
+        </div>
+        <a href="/devlog" class="link more-link">
+          → all devlog entries
+        </a>
+      </section>
+    )
+  }
+
+  <!-- LATEST ARTICLE -->
+  {
+    latestArticle && (
+      <section class="section">
+        <h2 class="h2">
+          <span class="hash">## </span>latest article
+        </h2>
+        <div class="article-hero">
+          <div class="meta">
+            {fmtDate(latestArticle.data.publishDate)}
+            {latestArticle.data.tags.length > 0 && (
+              <span class="tags">
+                {latestArticle.data.tags.map((t) => `#${t}`).join(' ')}
+              </span>
+            )}
+          </div>
+          <a class="title" href={`/articles/${latestArticle.id}`}>
+            {latestArticle.data.title}
+          </a>
+          <div class="dek">{latestArticle.data.dek}</div>
+          <div class="read">
+            <a href={`/articles/${latestArticle.id}`} class="link">
+              read article →
+            </a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- SUBSCRIBE -->
+  <section class="section">
+    <h2 class="h2"><span class="hash">## </span>subscribe</h2>
+    <div class="comment">
+      // weekly digest — articles, devlog highlights, what shipped. zero filler.
+    </div>
+    <form class="subscribe-row" method="POST" action="/api/subscribe" data-subscribe>
+      <input type="email" name="email" placeholder="you@example.com" required />
+      <button type="submit">subscribe</button>
+    </form>
+    <div class="subscribe-feedback" data-subscribe-feedback hidden></div>
+    <script>
+      const form = document.querySelector('[data-subscribe]') as HTMLFormElement | null;
+      const feedback = document.querySelector('[data-subscribe-feedback]') as HTMLElement | null;
+      if (form && feedback) {
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const button = form.querySelector('button') as HTMLButtonElement | null;
+          const original = button?.textContent ?? 'subscribe';
+          if (button) {
+            button.disabled = true;
+            button.textContent = 'subscribing…';
+          }
+          feedback.hidden = true;
+          feedback.classList.remove('error');
+
+          try {
+            const data = new FormData(form);
+            const res = await fetch('/api/subscribe', { method: 'POST', body: data });
+            const json = (await res.json()) as { ok: boolean; error?: string };
+            if (json.ok) {
+              feedback.textContent = '// subscribed. check your inbox to confirm.';
+              feedback.hidden = false;
+              form.reset();
+            } else {
+              feedback.textContent = `// ${json.error ?? 'something went wrong.'}`;
+              feedback.classList.add('error');
+              feedback.hidden = false;
+            }
+          } catch {
+            feedback.textContent = '// network error. try again.';
+            feedback.classList.add('error');
+            feedback.hidden = false;
+          } finally {
+            if (button) {
+              button.disabled = false;
+              button.textContent = original;
+            }
+          }
+        });
+      }
+    </script>
+  </section>
+
+  <div class="comment" style="margin-top: 24px;">
+    // EOF home.md<span class="cursor"></span>
+  </div>
+</BaseLayout>

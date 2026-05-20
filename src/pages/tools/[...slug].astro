@@ -1,0 +1,80 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HeroImage from '../../components/HeroImage.astro';
+
+export async function getStaticPaths() {
+  const tools = await getCollection('tools');
+  return tools.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<BaseLayout
+  title={`${entry.data.name} — brad traversy`}
+  description={entry.data.tagline}
+  pageTitle={`${entry.id}.mdx`}
+  currentSection="tools"
+>
+  <section class="section">
+    <div class="comment">
+      tool · {entry.data.category}
+    </div>
+    <h1 class="h1"><span class="hash"># </span>{entry.data.name}</h1>
+    <p class="lede">{entry.data.tagline}</p>
+
+    <div style="margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap;">
+      <span class:list={['pill', `kind-${entry.data.kind}`]}>
+        {entry.data.kind}
+      </span>
+      {entry.data.free === false && <span class="pill paid">paid</span>}
+      {entry.data.archived && <span class="pill">archived</span>}
+    </div>
+
+    {
+      (entry.data.url || entry.data.repoUrl) && (
+        <div style="margin-top: 18px; display: flex; gap: 18px; font-size: 12.5px;">
+          {entry.data.url && <a href={entry.data.url} class="link">→ open</a>}
+          {entry.data.repoUrl && <a href={entry.data.repoUrl} class="link">→ repo</a>}
+        </div>
+      )
+    }
+  </section>
+
+  {
+    entry.data.heroImage && (
+      <section class="section">
+        <HeroImage
+          class="tool-hero-image"
+          src={entry.data.heroImage}
+          alt={entry.data.heroImageAlt ?? `${entry.data.name} screenshot`}
+        />
+      </section>
+    )
+  }
+
+  <article class="section prose-lab">
+    <Content />
+  </article>
+
+  <div class="comment" style="margin-top: 24px;">
+    // EOF {entry.id}.mdx<span class="cursor"></span>
+  </div>
+</BaseLayout>
+
+<style>
+  .tool-hero-image {
+    display: block;
+    width: 100%;
+    max-width: 820px;
+    height: auto;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--bg-2);
+  }
+</style>

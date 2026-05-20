@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const projects = await getCollection('projects');
+const sorted = projects.sort(
+  (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf(),
+);
+---
+
+<BaseLayout
+  title="projects — brad traversy"
+  description="major ongoing work — apps, clis, infrastructure. status, stack, and how it's built."
+  pageTitle="projects/"
+  currentSection="projects"
+>
+  <section class="section">
+    <h1 class="h1"><span class="hash"># </span>projects</h1>
+    <p class="lede">
+      major ongoing work. each project has its own page with status, stack,
+      and a "how it's built" trail of articles and devlog entries.
+    </p>
+  </section>
+
+  <section class="section">
+    {
+      sorted.length === 0 ? (
+        <div class="comment">// no projects listed yet</div>
+      ) : (
+        <div class="card-grid">
+          {sorted.map((project) => (
+            <a class="card" href={`/projects/${project.id}`}>
+              <div>
+                <div class="card-title">{project.data.name}</div>
+                <div class="card-meta">{project.data.tagline}</div>
+              </div>
+              <div class="card-status">
+                <span class:list={['pill', project.data.status]}>{project.data.status}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </section>
+
+  <div class="comment" style="margin-top: 24px;">
+    // EOF projects/<span class="cursor"></span>
+  </div>
+</BaseLayout>

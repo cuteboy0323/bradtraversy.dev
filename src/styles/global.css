@@ -1,0 +1,1381 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* ==========================================================================
+   Tokyo Night palette + design tokens
+   The mockup is the visual North Star. Custom properties keep the chrome
+   styling readable; Tailwind utilities handle one-offs and prose.
+   ========================================================================== */
+
+@theme {
+  /* Backgrounds */
+  --color-bg: #16161e;
+  --color-bg-1: #1a1b26;
+  --color-bg-2: #1f2335;
+  --color-bg-3: #24283b;
+  --color-bg-4: #2a2e44;
+
+  /* Borders */
+  --color-border: #2a2e44;
+  --color-border-strong: #3b4261;
+
+  /* Foregrounds */
+  --color-fg: #c0caf5;
+  --color-fg-muted: #a9b1d6;
+  --color-fg-dim: #565f89;
+  --color-fg-comment: #444b6a;
+
+  /* Accents (Tokyo Night) */
+  --color-accent: #e0af68;
+  --color-accent-dim: #c08a3e;
+  --color-green: #9ece6a;
+  --color-blue: #7aa2f7;
+  --color-purple: #bb9af7;
+  --color-red: #f7768e;
+  --color-orange: #ff9e64;
+  --color-cyan: #7dcfff;
+
+  /* Typography */
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* Mirror the @theme tokens as plain custom properties so the chrome CSS
+   below can reference them without the --color- prefix (matches the mockup
+   one-to-one — easier to compare against the North Star). */
+:root {
+  --bg: var(--color-bg);
+  --bg-1: var(--color-bg-1);
+  --bg-2: var(--color-bg-2);
+  --bg-3: var(--color-bg-3);
+  --bg-4: var(--color-bg-4);
+  --border: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --fg: var(--color-fg);
+  --fg-muted: var(--color-fg-muted);
+  --fg-dim: var(--color-fg-dim);
+  --fg-comment: var(--color-fg-comment);
+  --accent: var(--color-accent);
+  --accent-dim: var(--color-accent-dim);
+  --green: var(--color-green);
+  --blue: var(--color-blue);
+  --purple: var(--color-purple);
+  --red: var(--color-red);
+  --orange: var(--color-orange);
+  --cyan: var(--color-cyan);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Pairs with the inline anti-FOUC <style> in BaseLayout head, which sets
+   body { visibility: hidden } so an unstyled stack of chrome elements
+   never flashes during navigation in Vite dev mode. */
+body {
+  visibility: visible;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-1);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-4);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ==========================================================================
+   Window chrome — the editor metaphor
+   Translated from docs/visual-north-star/home-mockup-airy-responsive.html
+   ========================================================================== */
+
+.window {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Title bar */
+.titlebar {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  user-select: none;
+}
+.traffic {
+  display: flex;
+  gap: 7px;
+}
+.traffic span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.traffic .red {
+  background: #ff5f57;
+}
+.traffic .yellow {
+  background: #febc2e;
+}
+.traffic .green {
+  background: #28c840;
+}
+.titlebar .title {
+  flex: 1;
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.titlebar .title .accent {
+  color: var(--accent);
+}
+.titlebar .menu {
+  display: flex;
+  gap: 16px;
+  color: var(--fg-dim);
+  font-size: 12px;
+}
+.titlebar .menu a {
+  color: var(--fg-dim);
+  text-decoration: none;
+}
+.titlebar .menu a:hover,
+.titlebar .menu a[aria-current='page'] {
+  color: var(--fg);
+  cursor: pointer;
+}
+
+/* Tab bar */
+.tabbar {
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabbar::-webkit-scrollbar {
+  display: none;
+}
+.tab {
+  padding: 10px 16px;
+  border-right: 1px solid var(--border);
+  color: var(--fg-dim);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.tab:hover {
+  color: var(--fg-muted);
+}
+.tab.active {
+  background: var(--bg-2);
+  color: var(--fg);
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: -1px;
+}
+.tab .icon.md {
+  color: var(--blue);
+}
+.tab .icon.folder {
+  color: var(--accent);
+}
+.tab .close {
+  color: var(--fg-comment);
+  margin-left: 4px;
+}
+
+/* Body grid */
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 48px 240px 1fr;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Activity bar */
+.activity {
+  background: var(--bg-1);
+  border-right: 1px solid var(--border);
+  padding: 14px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  z-index: 30;
+}
+.activity .ico {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--fg-dim);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  margin-left: 2px;
+  border-radius: 4px;
+  background: transparent;
+  font-family: inherit;
+  line-height: 1;
+}
+
+/* Lucide SVG icons render at a fixed size — consistent across every glyph,
+   unlike the Unicode symbols we used originally where ⌕ / ⚙ rendered visibly
+   smaller than ☰ / ◉ in JetBrains Mono. */
+.activity .ico svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.6;
+}
+.activity .ico.active {
+  color: var(--fg);
+  border-left-color: var(--accent);
+}
+.activity .ico:hover {
+  color: var(--fg);
+}
+.activity .ico.bottom {
+  margin-top: auto;
+}
+
+/* Button reset for the activity-bar toggles (the explorer icon is a button) */
+button.ico {
+  border: none;
+  border-left: 2px solid transparent;
+  padding: 0;
+}
+
+/* Anchor reset for activity-bar links (GitHub) — drop default underline + colour */
+a.ico {
+  text-decoration: none;
+}
+
+/* Explorer icon doubles as the nav toggle on mobile. Always highlighted —
+   on desktop because the panel is visible inline; on mobile because it
+   indicates "this is the panel behind the toggle." Matches VSCode's pattern
+   where the active activity-bar icon stays highlighted regardless of whether
+   the side panel is collapsed. */
+.activity .ico-explorer {
+  color: var(--fg);
+  border-left-color: var(--accent);
+}
+
+/* Explorer backdrop — only visible on mobile when nav-open. Lives inside .body
+   so it covers only the editor area, not the activity bar. */
+.explorer-backdrop {
+  display: none;
+}
+
+/* Explorer */
+.explorer {
+  background: var(--bg-2);
+  border-right: 1px solid var(--border);
+  padding: 12px 0 0 0;
+  overflow-y: auto;
+  font-size: 12.5px;
+}
+.explorer h3 {
+  color: var(--fg-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 6px 14px 10px 14px;
+}
+.tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tree li {
+  padding: 4px 14px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tree li a {
+  color: inherit;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.tree li .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tree li:hover {
+  background: var(--bg-3);
+  color: var(--fg);
+}
+.tree li.active {
+  background: var(--bg-3);
+  color: var(--fg);
+}
+.tree li .chev {
+  color: var(--fg-comment);
+  width: 10px;
+}
+.tree li .ico-md {
+  color: var(--blue);
+}
+.tree li .ico-folder {
+  color: var(--accent);
+}
+.tree li .ico-json {
+  color: var(--orange);
+}
+.tree li.indent-2 {
+  padding-left: 28px;
+}
+.tree li.indent-3 {
+  padding-left: 44px;
+}
+.tree li.see-more-row a {
+  color: var(--fg-comment);
+  font-style: italic;
+}
+.tree li.see-more-row a:hover {
+  color: var(--fg-muted);
+}
+
+/* Editor */
+.editor {
+  background: var(--bg-1);
+  overflow-y: auto;
+  display: flex;
+  font-size: 13.5px;
+}
+.gutter {
+  text-align: right;
+  color: var(--fg-comment);
+  user-select: none;
+  padding: 80px 10px 80px 16px;
+  font-variant-numeric: tabular-nums;
+  background: var(--bg-1);
+  font-size: 11.5px;
+  opacity: 0.5;
+}
+.gutter span {
+  display: block;
+  line-height: 2.6;
+}
+.content {
+  padding: 80px 56px 120px 48px;
+  flex: 1;
+  min-width: 0;
+  max-width: 820px;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 96px;
+}
+.section:last-of-type {
+  margin-bottom: 48px;
+}
+
+/* Markdown-styled headings */
+.h1 {
+  color: var(--accent);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+.h1 .hash {
+  color: var(--fg-comment);
+  font-weight: 400;
+}
+.h2 {
+  color: var(--purple);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  letter-spacing: -0.005em;
+}
+.h2 .hash {
+  color: var(--fg-comment);
+  font-weight: 400;
+}
+
+.lede {
+  color: var(--fg-muted);
+  font-size: 14px;
+  line-height: 1.75;
+  max-width: 580px;
+}
+.lede .accent-text {
+  color: var(--accent);
+}
+
+.link {
+  color: var(--blue);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--blue);
+}
+.link:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.code {
+  color: var(--green);
+  background: var(--bg-3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 12.5px;
+}
+.comment {
+  color: var(--fg-comment);
+  font-size: 12.5px;
+  margin-bottom: 18px;
+}
+
+/* Status pills */
+.pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 6px;
+  background: var(--bg-3);
+  color: var(--fg-muted);
+  border: 1px solid var(--border-strong);
+}
+/* Status — projects */
+.pill.live {
+  background: rgba(158, 206, 106, 0.15);
+  color: var(--green);
+  border-color: rgba(158, 206, 106, 0.28);
+}
+.pill.local {
+  background: rgba(125, 207, 255, 0.15);
+  color: var(--cyan);
+  border-color: rgba(125, 207, 255, 0.28);
+}
+.pill.beta {
+  background: rgba(255, 158, 100, 0.15);
+  color: var(--orange);
+  border-color: rgba(255, 158, 100, 0.28);
+}
+.pill.alpha {
+  background: rgba(122, 162, 247, 0.15);
+  color: var(--blue);
+  border-color: rgba(122, 162, 247, 0.28);
+}
+.pill.planning {
+  background: rgba(224, 175, 104, 0.15);
+  color: var(--accent);
+  border-color: rgba(224, 175, 104, 0.28);
+}
+.pill.maintenance {
+  background: rgba(187, 154, 247, 0.15);
+  color: var(--purple);
+  border-color: rgba(187, 154, 247, 0.28);
+}
+.pill.sunset {
+  background: rgba(247, 118, 142, 0.12);
+  color: var(--red);
+  border-color: rgba(247, 118, 142, 0.25);
+}
+.pill.coming {
+  background: rgba(122, 162, 247, 0.15);
+  color: var(--blue);
+  border-color: rgba(122, 162, 247, 0.28);
+}
+/* Pricing */
+.pill.free {
+  background: var(--bg-3);
+  color: var(--fg-muted);
+  border-color: var(--border-strong);
+}
+.pill.paid {
+  background: rgba(224, 175, 104, 0.15);
+  color: var(--accent);
+  border-color: rgba(224, 175, 104, 0.28);
+}
+/* Tool kind */
+.pill.kind-cli {
+  background: rgba(125, 207, 255, 0.12);
+  color: var(--cyan);
+  border-color: rgba(125, 207, 255, 0.25);
+}
+.pill.kind-web {
+  background: rgba(158, 206, 106, 0.12);
+  color: var(--green);
+  border-color: rgba(158, 206, 106, 0.25);
+}
+.pill.kind-desktop {
+  background: rgba(187, 154, 247, 0.12);
+  color: var(--purple);
+  border-color: rgba(187, 154, 247, 0.25);
+}
+.pill.kind-api {
+  background: rgba(255, 158, 100, 0.12);
+  color: var(--orange);
+  border-color: rgba(255, 158, 100, 0.25);
+}
+.pill.kind-library {
+  background: rgba(122, 162, 247, 0.12);
+  color: var(--blue);
+  border-color: rgba(122, 162, 247, 0.25);
+}
+.pill.open-source {
+  background: rgba(125, 207, 255, 0.15);
+  color: var(--cyan);
+  border-color: rgba(125, 207, 255, 0.28);
+}
+.pill.source-available {
+  background: rgba(122, 162, 247, 0.12);
+  color: var(--blue);
+  border-color: rgba(122, 162, 247, 0.25);
+}
+.pill.mixed {
+  background: rgba(187, 154, 247, 0.12);
+  color: var(--purple);
+  border-color: rgba(187, 154, 247, 0.25);
+}
+
+/* Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin: 0;
+}
+.card {
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 18px 22px;
+  background: var(--bg-2);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  align-items: baseline;
+  text-decoration: none;
+  color: inherit;
+}
+.card:hover {
+  border-color: var(--accent);
+}
+.card .card-title {
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 14px;
+}
+.card .card-meta {
+  color: var(--fg-comment);
+  font-size: 11.5px;
+  grid-column: 1 / 2;
+}
+.card .card-status {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* Article hero */
+.article-hero {
+  border-left: 2px solid var(--accent);
+  padding: 6px 0 6px 22px;
+}
+.article-hero .meta {
+  color: var(--accent-dim);
+  font-size: 11.5px;
+}
+.article-hero .meta .tags {
+  color: var(--fg-comment);
+  margin-left: 8px;
+}
+.article-hero .title {
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.4;
+  margin-top: 8px;
+  text-decoration: none;
+  display: block;
+}
+.article-hero .title:hover {
+  color: var(--accent);
+}
+.article-hero .dek {
+  color: var(--fg-muted);
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  max-width: 580px;
+}
+.article-hero .read {
+  margin-top: 14px;
+  font-size: 12.5px;
+}
+
+/* Devlog list */
+.devlog-row {
+  display: flex;
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+.devlog-row:last-child {
+  border-bottom: none;
+}
+.devlog-row .date {
+  color: var(--accent-dim);
+  font-size: 11.5px;
+  min-width: 90px;
+}
+.devlog-row .title {
+  color: var(--fg-muted);
+  font-size: 13px;
+  flex: 1;
+  line-height: 1.6;
+  text-decoration: none;
+}
+.devlog-row .title:hover {
+  color: var(--accent);
+}
+.devlog-row .tag {
+  color: var(--fg-comment);
+  font-size: 11.5px;
+}
+.more-link {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 12.5px;
+}
+
+/* Tools list */
+.tools-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 80px;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.tools-row:last-child {
+  border-bottom: none;
+}
+.tools-row .name {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+}
+.tools-row .name:hover {
+  text-decoration: underline;
+}
+.tools-row .desc {
+  color: var(--fg-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.tools-row .status-cell {
+  text-align: right;
+}
+
+/* Subscribe */
+.subscribe-row {
+  display: flex;
+  gap: 8px;
+  max-width: 480px;
+}
+.subscribe-row input {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  color: var(--fg);
+  padding: 10px 14px;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 13px;
+  min-width: 0;
+}
+.subscribe-row button {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.subscribe-row button:hover {
+  background: #f0bf78;
+}
+.subscribe-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.subscribe-feedback {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--fg-comment);
+}
+.subscribe-feedback.error {
+  color: var(--color-red, #f7768e);
+}
+
+/* Status bar */
+.statusbar {
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+  padding: 5px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--fg-dim);
+  user-select: none;
+}
+.statusbar .item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.statusbar .item.accent {
+  color: var(--accent);
+}
+.statusbar .item.green {
+  color: var(--green);
+}
+.statusbar .spacer {
+  flex: 1;
+}
+.statusbar .branch::before {
+  content: '⎇';
+  margin-right: 4px;
+  color: var(--accent);
+}
+
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background: var(--accent);
+  vertical-align: text-bottom;
+  animation: blink 1s steps(2) infinite;
+  margin-left: 2px;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   prose-lab — body styling for article / project / tool detail page MDX
+   Matches the editor metaphor: hash-prefixed headings, mono links,
+   tokyo-night code blocks (handled by rehype-pretty-code), generous spacing.
+   ========================================================================== */
+
+.prose-lab {
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--fg-muted);
+  max-width: 720px;
+}
+.prose-lab > * + * {
+  margin-top: 18px;
+}
+
+.prose-lab h2,
+.prose-lab h3,
+.prose-lab h4 {
+  color: var(--purple);
+  letter-spacing: -0.005em;
+  margin-top: 48px;
+  margin-bottom: 14px;
+  scroll-margin-top: 24px;
+}
+.prose-lab h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.prose-lab h3 {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.prose-lab h4 {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--cyan);
+}
+.prose-lab h2::before {
+  content: '## ';
+  color: var(--fg-comment);
+  font-weight: 400;
+}
+.prose-lab h3::before {
+  content: '### ';
+  color: var(--fg-comment);
+  font-weight: 400;
+}
+.prose-lab h4::before {
+  content: '#### ';
+  color: var(--fg-comment);
+  font-weight: 400;
+}
+
+.prose-lab p {
+  color: var(--fg-muted);
+}
+.prose-lab strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+.prose-lab em {
+  color: var(--fg);
+  font-style: italic;
+}
+
+.prose-lab a {
+  color: var(--blue);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--blue);
+}
+.prose-lab a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.prose-lab ul,
+.prose-lab ol {
+  padding-left: 22px;
+  color: var(--fg-muted);
+}
+.prose-lab ul {
+  list-style: '· ';
+}
+.prose-lab ol {
+  list-style: decimal;
+}
+.prose-lab li {
+  margin-top: 6px;
+  padding-left: 4px;
+}
+.prose-lab li::marker {
+  color: var(--fg-comment);
+}
+
+.prose-lab blockquote {
+  border-left: 2px solid var(--accent);
+  padding: 4px 0 4px 18px;
+  color: var(--fg);
+  font-style: italic;
+}
+.prose-lab blockquote p {
+  color: var(--fg);
+}
+
+.prose-lab code:not(pre code) {
+  color: var(--green);
+  background: var(--bg-3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+}
+
+.prose-lab pre {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 18px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.prose-lab pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+.prose-lab hr {
+  border: none;
+  border-top: 1px dashed var(--border-strong);
+  margin: 32px 0;
+}
+
+.prose-lab table {
+  border-collapse: collapse;
+  font-size: 12.5px;
+  width: 100%;
+}
+.prose-lab th,
+.prose-lab td {
+  border: 1px solid var(--border-strong);
+  padding: 6px 12px;
+  text-align: left;
+}
+.prose-lab th {
+  background: var(--bg-3);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.prose-lab img {
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.cmdk-hint {
+  position: fixed;
+  bottom: 60px;
+  right: 40px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 11px;
+  color: var(--fg-muted);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+.cmdk-hint kbd {
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--fg);
+}
+
+/* ==========================================================================
+   Command palette — terminal-feel modal for navigating projects, tools,
+   devlog, articles, and singleton pages. Triggered by Search icon, ⌘/Ctrl+K,
+   or "/" outside an editable. Vanilla dialog + js.
+   ========================================================================== */
+.palette {
+  width: min(720px, calc(100vw - 32px));
+  max-height: 70vh;
+  padding: 0;
+  margin: 12vh auto auto;
+  background: var(--bg-2);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-strong);
+  font-family: inherit;
+  overflow: hidden;
+}
+.palette::backdrop {
+  background: rgba(8, 10, 16, 0.7);
+  backdrop-filter: blur(2px);
+}
+.palette[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.palette-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-1);
+}
+.palette-input .prompt {
+  color: var(--green);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+}
+.palette-input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 0;
+  caret-color: var(--accent);
+}
+.palette-input input::placeholder {
+  color: var(--fg-comment);
+}
+.palette-input .esc-hint {
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.palette-results {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(70vh - 100px);
+}
+.palette-row {
+  display: grid;
+  grid-template-columns: 18px 80px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  font-size: 13px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  min-width: 0;
+}
+.palette-row.active {
+  background: var(--bg-3);
+  color: var(--fg);
+  border-left-color: var(--accent);
+}
+.palette-arrow {
+  color: var(--accent);
+  font-weight: 700;
+  text-align: center;
+  white-space: pre;
+}
+.palette-kind {
+  font-size: 11px;
+  color: var(--fg-comment);
+  letter-spacing: 0.02em;
+}
+.palette-kind.kind-project { color: var(--accent); }
+.palette-kind.kind-tool    { color: var(--green); }
+.palette-kind.kind-devlog  { color: var(--blue); }
+.palette-kind.kind-article { color: var(--orange); }
+.palette-kind.kind-page    { color: var(--fg-comment); }
+.palette-title {
+  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.palette-hint {
+  color: var(--fg-comment);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+  text-align: right;
+}
+.palette-empty {
+  padding: 14px 16px;
+  color: var(--fg-comment);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.palette-footer {
+  display: flex;
+  gap: 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-1);
+  font-size: 11px;
+  color: var(--fg-comment);
+}
+.palette-footer kbd {
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--fg-muted);
+  margin-right: 4px;
+}
+
+@media (max-width: 640px) {
+  .palette {
+    margin: 6vh auto auto;
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+  }
+  .palette-row {
+    grid-template-columns: 18px 60px minmax(0, 1fr);
+    padding: 7px 12px;
+    gap: 8px;
+  }
+  .palette-input {
+    padding: 12px;
+  }
+  .palette-hint {
+    display: none;
+  }
+  .palette-footer {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS + EXPLORER TOGGLE
+   The activity bar is visible at every width and its Explorer icon is the
+   nav toggle. The explorer's visibility uses two state classes that never
+   conflict (each only applies inside its own breakpoint range):
+     body.explorer-hidden  — desktop only, user collapsed the inline panel
+     body.nav-open         — mobile only, user opened the slide-out drawer
+   Defaults: desktop = explorer visible inline; mobile = explorer hidden.
+   Resize across breakpoints clears both classes (see BaseLayout script).
+   ========================================================================== */
+
+/* DESKTOP: collapse explorer when user clicks the toggle */
+@media (min-width: 1025px) {
+  body.explorer-hidden .body {
+    grid-template-columns: 48px 1fr;
+  }
+  body.explorer-hidden .explorer {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .body {
+    grid-template-columns: 48px 1fr;
+  }
+  .titlebar .menu {
+    display: none;
+  }
+
+  /* Explorer becomes a slide-out drawer at left: 48px (right of activity bar).
+     Lives inside .body which is position: relative — so absolute positioning
+     here is bounded to the editor area. */
+  .explorer {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 48px;
+    bottom: 0;
+    width: 280px;
+    max-width: calc(100vw - 48px);
+    transform: translateX(calc(-100% - 48px));
+    transition: transform 0.2s ease-out;
+    z-index: 20;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  }
+  body.nav-open .explorer {
+    transform: translateX(0);
+  }
+
+  /* Tap-target padding bump for explorer rows on touch devices */
+  .explorer .tree li {
+    padding: 8px 14px;
+  }
+  .explorer .tree li.indent-2 {
+    padding-left: 28px;
+  }
+  .explorer .tree li.indent-3 {
+    padding-left: 44px;
+  }
+
+  .explorer-backdrop {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 48px;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 15;
+  }
+  body.nav-open .explorer-backdrop {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .gutter {
+    display: none;
+  }
+  .editor {
+    font-size: 13px;
+  }
+
+  .titlebar {
+    padding: 9px 12px;
+    gap: 10px;
+  }
+  .titlebar .title {
+    font-size: 11.5px;
+  }
+
+  .content {
+    padding: 40px 24px 80px 24px;
+  }
+  .section {
+    margin-bottom: 64px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* When the explorer drawer is open at phone widths, lock body scroll
+     so the editor underneath doesn't scroll while the user is in the panel */
+  body.nav-open {
+    overflow: hidden;
+  }
+
+  .content {
+    padding: 32px 20px 64px 20px;
+  }
+  .section {
+    margin-bottom: 56px;
+  }
+  .h1 {
+    font-size: 22px;
+  }
+  .h2 {
+    font-size: 15px;
+  }
+
+  .card {
+    padding: 14px 16px;
+  }
+  .card .card-title {
+    font-size: 13.5px;
+  }
+
+  .article-hero {
+    padding-left: 16px;
+  }
+  .article-hero .title {
+    font-size: 16px;
+  }
+
+  .devlog-row {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+  .devlog-row .date {
+    min-width: auto;
+  }
+  .devlog-row .title {
+    flex-basis: 100%;
+    order: 2;
+  }
+  .devlog-row .tag {
+    order: 3;
+  }
+
+  .tools-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'name status'
+      'desc desc';
+    gap: 4px 12px;
+    padding: 12px 0;
+  }
+  .tools-row .name {
+    grid-area: name;
+  }
+  .tools-row .desc {
+    grid-area: desc;
+  }
+  .tools-row .status-cell {
+    grid-area: status;
+  }
+
+  .subscribe-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .subscribe-row button {
+    width: 100%;
+  }
+
+  .statusbar {
+    padding: 5px 12px;
+    gap: 10px;
+  }
+  .statusbar .item.encoding,
+  .statusbar .item.eol,
+  .statusbar .item.syntax {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .tabbar {
+    display: none;
+  }
+  .cmdk-hint {
+    display: none;
+  }
+  .titlebar .title {
+    font-size: 11px;
+  }
+
+  .content {
+    padding: 28px 16px 56px 16px;
+  }
+  .h1 {
+    font-size: 20px;
+  }
+}

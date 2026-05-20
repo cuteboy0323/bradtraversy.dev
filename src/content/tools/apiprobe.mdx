@@ -1,0 +1,69 @@
+---
+name: API Probe
+tagline: a small browser-based request runner — built mostly for tutorials and quick api checks
+category: dev
+kind: web
+tags: [api, http, testing]
+url: https://apiprobe.dev
+repoUrl: https://github.com/bradtraversy/apiprobe
+free: true
+publishDate: 2026-05-08
+heroImage: ./apiprobe-hero.webp
+heroImageAlt: api probe ui — dark theme with environment, saved requests, recent requests sidebar and a request builder with method, url, auth, and headers
+---
+
+a small open-source api request runner that runs in the browser. paste a url,
+add headers and a body if you need them, hit send. for the "i just need to
+poke this endpoint and see what comes back" moments where opening postman
+feels like overkill.
+
+honest framing: this isn't trying to compete with postman, hoppscotch, bruno,
+or insomnia. those tools are bigger, more featureful, and built by larger
+teams. api probe is intentionally small — i built it because i wanted
+something tiny i could embed in tutorials and pair with
+[api mocker](/tools/apimocker), and it ended up useful enough to put online.
+
+## what it does
+
+- **all the standard http methods** — get, post, put, delete, patch, head,
+  options
+- **environment variables** — define `baseUrl`, `token`, `userId` once,
+  reference them with `{{varName}}` in urls, headers, and bodies. swap
+  between dev / staging / prod environments without rewriting requests
+- **request history + saved requests** — recent requests are logged
+  locally; the ones worth keeping pin to the sidebar
+- **auth helpers** — bearer tokens, basic auth, or any custom authorization
+  header. stored in your browser, not on a server
+- **body editors** — syntax-highlighted json + xml, form-data key/value
+  rows, raw text
+- **response viewer** — pretty-printed json/xml, headers panel, response
+  duration and size
+
+## how to use
+
+1. open [apiprobe.dev](https://apiprobe.dev)
+2. paste a url (or a `{{baseUrl}}/path` if you set up an environment)
+3. add headers / body / auth as needed
+4. send. response renders inline.
+
+`ctrl+enter` sends the request from anywhere in the form.
+
+## hosted vs self-hosted
+
+the hosted version at [apiprobe.dev](https://apiprobe.dev) has a low rate
+limit on the proxy (it's a free demo, not a backend i want to babysit
+indefinitely). for real day-to-day work, **clone the repo and run it
+locally** — same ui, no rate limit, your machine's network reach.
+
+```bash
+git clone https://github.com/bradtraversy/apiprobe
+cd apiprobe
+npm install
+npm run dev
+```
+
+if you want a full-featured browser-based tool you can leave on, hoppscotch
+is the well-trodden choice. api probe is the smaller, "i just want a
+clean window with a send button" alternative.
+
+> [open apiprobe.dev →](https://apiprobe.dev) · [github →](https://github.com/bradtraversy/apiprobe)

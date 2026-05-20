@@ -1,0 +1,39 @@
+{
+  "name": "bradtraversy-dev",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "draft-newsletter": "node scripts/draft-newsletter.mjs"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^5.0.4",
+    "@astrojs/rss": "^4.0.18",
+    "@astrojs/sitemap": "^3.7.2",
+    "@astrojs/vercel": "^10.0.6",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@iconify-json/lucide": "^1.2.105",
+    "@tailwindcss/vite": "^4.2.4",
+    "@vercel/analytics": "^2.0.1",
+    "astro": "^6.2.1",
+    "astro-icon": "^1.1.5",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-external-links": "^3.0.0",
+    "rehype-pretty-code": "^0.14.3",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "sharp": "^0.34.5",
+    "shiki": "^4.0.2",
+    "tailwindcss": "^4.2.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "typescript": "^6.0.3"
+  }
+}

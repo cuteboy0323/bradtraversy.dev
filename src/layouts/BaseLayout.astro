@@ -1,0 +1,642 @@
+---
+import '../styles/global.css';
+import { getCollection } from 'astro:content';
+import { Icon } from 'astro-icon/components';
+import Analytics from '@vercel/analytics/astro';
+
+type Section = 'home' | 'articles' | 'devlog' | 'projects' | 'tools' | 'now' | 'about' | 'github' | 'subscribed';
+
+interface Props {
+  title: string;
+  description?: string;
+  pageTitle: string;
+  currentSection: Section;
+}
+
+const {
+  title,
+  description = 'a public lab — articles, devlog, and the tools i ship.',
+  pageTitle,
+  currentSection,
+} = Astro.props;
+
+// Build a small explorer tree from real content. Most-recent-first; skips drafts.
+const allDevlog = await getCollection('devlog', ({ data }) => !data.draft || import.meta.env.DEV);
+const recentDevlog = allDevlog
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 6);
+
+const allProjects = await getCollection('projects');
+const recentProjects = allProjects
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 5);
+
+const allTools = await getCollection('tools');
+const recentTools = allTools
+  .filter((t) => !t.data.archived)
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 5);
+
+const navItems: Array<{ label: string; href: string; section: Section }> = [
+  { label: 'projects', href: '/projects', section: 'projects' },
+  { label: 'tools', href: '/tools', section: 'tools' },
+  { label: 'devlog', href: '/devlog', section: 'devlog' },
+  { label: 'articles', href: '/articles', section: 'articles' },
+  { label: 'now', href: '/now', section: 'now' },
+  { label: 'about', href: '/about', section: 'about' },
+];
+
+const tabs: Array<{ label: string; href: string; section: Section; kind: 'md' | 'folder' }> = [
+  { label: 'home.md', href: '/', section: 'home', kind: 'md' },
+  { label: 'projects/', href: '/projects', section: 'projects', kind: 'folder' },
+  { label: 'tools/', href: '/tools', section: 'tools', kind: 'folder' },
+  { label: 'devlog/', href: '/devlog', section: 'devlog', kind: 'folder' },
+  { label: 'articles/', href: '/articles', section: 'articles', kind: 'folder' },
+  { label: 'now.md', href: '/now', section: 'now', kind: 'md' },
+  { label: 'about.md', href: '/about', section: 'about', kind: 'md' },
+];
+
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+
+// Command-palette search index. Flat list across every navigable surface.
+// Sorted recent-first so an empty query shows the latest activity.
+const allArticles = await getCollection('articles', ({ data }) => !data.draft || import.meta.env.DEV);
+
+type SearchEntry = {
+  kind: 'project' | 'tool' | 'devlog' | 'article' | 'page';
+  title: string;
+  url: string;
+  hint?: string;
+  date?: number;
+};
+
+const searchIndex: SearchEntry[] = [
+  ...allProjects.map((p): SearchEntry => ({
+    kind: 'project',
+    title: p.data.name,
+    url: `/projects/${p.id}`,
+    hint: p.data.tagline,
+    date: p.data.publishDate.valueOf(),
+  })),
+  ...allTools.filter((t) => !t.data.archived).map((t): SearchEntry => ({
+    kind: 'tool',
+    title: t.data.name,
+    url: `/tools/${t.id}`,
+    hint: t.data.tagline,
+    date: t.data.publishDate.valueOf(),
+  })),
+  ...allDevlog.map((d): SearchEntry => ({
+    kind: 'devlog',
+    title: d.data.title,
+    url: `/devlog/${d.id}`,
+    hint: d.data.project ? `#${d.data.project}` : undefined,
+    date: d.data.publishDate.valueOf(),
+  })),
+  ...allArticles.map((a): SearchEntry => ({
+    kind: 'article',
+    title: a.data.title,
+    url: `/articles/${a.id}`,
+    hint: a.data.dek,
+    date: a.data.publishDate.valueOf(),
+  })),
+  ...([
+    { kind: 'page', title: 'home', url: '/', hint: 'index.astro' },
+    { kind: 'page', title: 'projects', url: '/projects', hint: 'all projects' },
+    { kind: 'page', title: 'tools', url: '/tools', hint: 'all tools' },
+    { kind: 'page', title: 'devlog', url: '/devlog', hint: 'all devlog entries' },
+    { kind: 'page', title: 'articles', url: '/articles', hint: 'all articles' },
+    { kind: 'page', title: 'now', url: '/now', hint: 'currently working on' },
+    { kind: 'page', title: 'about', url: '/about', hint: 'about brad' },
+  ] satisfies SearchEntry[]),
+].sort((a, b) => (b.date ?? 0) - (a.date ?? 0));
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonical} />
+    <meta name="description" content={description} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="brad traversy" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <title>{title}</title>
+
+    <style is:inline>
+      /* Anti-FOUC: keep the body hidden until global.css has applied.
+         In Vite dev mode, CSS is injected via JS modules so there's a tick
+         where the unstyled .body (no grid) lets all chrome elements stack
+         vertically before styles snap them into place. global.css contains
+         a matching `body { visibility: visible }` rule that wins as soon
+         as the stylesheet is in. The dark html background prevents any
+         white flash during the gap. */
+      html { background: #16161e; }
+      body { visibility: hidden; }
+    </style>
+  </head>
+
+  <body>
+    <div class="window">
+      <!-- TITLE BAR -->
+      <div class="titlebar">
+        <div class="traffic">
+          <span class="red"></span>
+          <span class="yellow"></span>
+          <span class="green"></span>
+        </div>
+        <div class="title">
+          <span class="accent">bradtraversy.dev</span> &mdash; {pageTitle}
+        </div>
+        <nav class="menu" aria-label="Primary">
+          {
+            navItems.map((item) => (
+              <a
+                href={item.href}
+                aria-current={item.section === currentSection ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            ))
+          }
+          <span aria-hidden="true">⌘K</span>
+        </nav>
+      </div>
+
+      <!-- TAB BAR -->
+      <div class="tabbar">
+        {
+          tabs.map((tab) => (
+            <a
+              href={tab.href}
+              class:list={['tab', { active: tab.section === currentSection }]}
+            >
+              <span class:list={['icon', tab.kind]}>{tab.kind === 'md' ? '●' : '▸'}</span>
+              {tab.label}
+              {tab.section === currentSection && <span class="close">×</span>}
+            </a>
+          ))
+        }
+      </div>
+
+      <!-- BODY -->
+      <div class="body">
+        <!-- ACTIVITY BAR — always visible. The Explorer icon doubles as the
+             nav toggle on mobile (slides the explorer in from the right of
+             this bar); on desktop the explorer is permanently inline so the
+             icon is just a status indicator. -->
+        <div class="activity">
+          <button
+            class="ico ico-explorer"
+            id="explorer-toggle"
+            type="button"
+            aria-label="Toggle explorer"
+            aria-expanded="false"
+            aria-controls="explorer"
+          >
+            <Icon name="lucide:files" />
+          </button>
+          <button
+            class="ico"
+            id="search-toggle"
+            type="button"
+            title="Search (⌘K)"
+            aria-label="Open search"
+          ><Icon name="lucide:search" /></button>
+          <a
+            class="ico"
+            href="/github"
+            title="GitHub activity"
+            aria-label="GitHub activity"
+          ><Icon name="lucide:github" /></a>
+        </div>
+
+        <!-- Backdrop only shown on mobile when the explorer drawer is open.
+             Sits inside .body so it covers only the editor area, not the
+             activity bar (the user can still tap the toggle to close). -->
+        <div class="explorer-backdrop" id="explorerBackdrop"></div>
+
+        <!-- EXPLORER — inline at desktop, slide-out drawer at ≤1024 -->
+        <div class="explorer" id="explorer">
+          <h3>Explorer</h3>
+          <ul class="tree">
+            <li>
+              <span class="chev">▾</span>
+              <span class="ico-folder">▸</span>
+              &nbsp;BRADTRAVERSY
+            </li>
+            <li class:list={['indent-2', { active: currentSection === 'home' }]}>
+              <a href="/">
+                <span class="chev"></span>
+                <span class="ico-md">●</span>
+                &nbsp;home.md
+              </a>
+            </li>
+            <li class:list={['indent-2', { active: currentSection === 'projects' }]}>
+              <a href="/projects">
+                <span class="chev">▾</span>
+                <span class="ico-folder">▸</span>
+                &nbsp;projects
+              </a>
+            </li>
+            {
+              recentProjects.map((project) => (
+                <li class="indent-3">
+                  <a href={`/projects/${project.id}`} title={project.data.name}>
+                    <span class="chev"></span>
+                    <span class="ico-md">●</span>
+                    <span class="name">{project.id}.mdx</span>
+                  </a>
+                </li>
+              ))
+            }
+            {allProjects.length > recentProjects.length && (
+              <li class="indent-3 see-more-row">
+                <a href="/projects">
+                  <span class="chev"></span>
+                  <span class="ico-md">…</span>
+                  <span class="name">see all ({allProjects.length})</span>
+                </a>
+              </li>
+            )}
+            <li class:list={['indent-2', { active: currentSection === 'tools' }]}>
+              <a href="/tools">
+                <span class="chev">▾</span>
+                <span class="ico-folder">▸</span>
+                &nbsp;tools
+              </a>
+            </li>
+            {
+              recentTools.map((tool) => (
+                <li class="indent-3">
+                  <a href={`/tools/${tool.id}`} title={tool.data.name}>
+                    <span class="chev"></span>
+                    <span class="ico-md">●</span>
+                    <span class="name">{tool.id}.mdx</span>
+                  </a>
+                </li>
+              ))
+            }
+            {allTools.filter((t) => !t.data.archived).length > recentTools.length && (
+              <li class="indent-3 see-more-row">
+                <a href="/tools">
+                  <span class="chev"></span>
+                  <span class="ico-md">…</span>
+                  <span class="name">see all ({allTools.filter((t) => !t.data.archived).length})</span>
+                </a>
+              </li>
+            )}
+            <li class:list={['indent-2', { active: currentSection === 'devlog' }]}>
+              <a href="/devlog">
+                <span class="chev">▾</span>
+                <span class="ico-folder">▸</span>
+                &nbsp;devlog
+              </a>
+            </li>
+            {
+              recentDevlog.map((entry) => (
+                <li class="indent-3">
+                  <a href={`/devlog/${entry.id}`} title={entry.data.title}>
+                    <span class="chev"></span>
+                    <span class="ico-md">●</span>
+                    <span class="name">{entry.id.replace(/^\d{4}-/, '')}.md</span>
+                  </a>
+                </li>
+              ))
+            }
+            {allDevlog.length > recentDevlog.length && (
+              <li class="indent-3 see-more-row">
+                <a href="/devlog">
+                  <span class="chev"></span>
+                  <span class="ico-md">…</span>
+                  <span class="name">see all ({allDevlog.length})</span>
+                </a>
+              </li>
+            )}
+            <li class:list={['indent-2', { active: currentSection === 'articles' }]}>
+              <a href="/articles">
+                <span class="chev">▸</span>
+                <span class="ico-folder">▸</span>
+                &nbsp;articles
+              </a>
+            </li>
+            <li class:list={['indent-2', { active: currentSection === 'now' }]}>
+              <a href="/now">
+                <span class="chev"></span>
+                <span class="ico-md">●</span>
+                &nbsp;now.md
+              </a>
+            </li>
+            <li class:list={['indent-2', { active: currentSection === 'about' }]}>
+              <a href="/about">
+                <span class="chev"></span>
+                <span class="ico-md">●</span>
+                &nbsp;about.md
+              </a>
+            </li>
+            <li class="indent-2">
+              <span class="chev"></span>
+              <span class="ico-json">{`{}`}</span>
+              &nbsp;package.json
+            </li>
+          </ul>
+        </div>
+
+        <!-- EDITOR -->
+        <div class="editor">
+          <div class="gutter" aria-hidden="true">
+            {Array.from({ length: 20 }).map((_, i) => <span>{i + 1}</span>)}
+          </div>
+          <div class="content">
+            <slot />
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS BAR -->
+      <div class="statusbar">
+        <div class="item branch">main</div>
+        <div class="item green">●</div>
+        <div class="item">{pageTitle}</div>
+        <div class="spacer"></div>
+        <div class="item encoding">UTF-8</div>
+        <div class="item eol">LF</div>
+        <div class="item syntax">Markdown</div>
+        <div class="item accent">Ln 1, Col 1</div>
+      </div>
+    </div>
+
+    <div class="cmdk-hint" aria-hidden="true">
+      <kbd>⌘</kbd> <kbd>K</kbd> &nbsp;to navigate
+    </div>
+
+    <!-- COMMAND PALETTE -->
+    <dialog class="palette" id="search-palette" aria-label="Search">
+      <form class="palette-input" method="dialog">
+        <span class="prompt" aria-hidden="true">$</span>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="search projects, tools, devlog, articles…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search query"
+          aria-controls="search-results"
+        />
+        <kbd class="esc-hint" aria-hidden="true">esc</kbd>
+      </form>
+      <ul class="palette-results" id="search-results" role="listbox"></ul>
+      <div class="palette-footer" aria-hidden="true">
+        <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+        <span><kbd>↵</kbd> open</span>
+        <span><kbd>esc</kbd> close</span>
+      </div>
+    </dialog>
+    <script is:inline type="application/json" id="search-index" set:html={JSON.stringify(searchIndex)}></script>
+
+    <Analytics />
+
+    <script>
+      // Activity-bar Explorer icon (☰) toggles the explorer at every width.
+      // Desktop (>=1025): toggles `body.explorer-hidden` to collapse/restore
+      //   the inline panel. Editor expands into the freed grid column.
+      // Mobile (<=1024): toggles `body.nav-open` to slide the panel in/out
+      //   over the editor with a backdrop. ESC + backdrop tap close it.
+      // Each class only takes effect inside its own breakpoint, so the two
+      // states never fight. Resize across the boundary clears both classes
+      // so the user sees the breakpoint's default state cleanly.
+      const toggle = document.getElementById('explorer-toggle');
+      const backdrop = document.getElementById('explorerBackdrop');
+      const isDesktop = () => window.matchMedia('(min-width: 1025px)').matches;
+      const stateClass = () => (isDesktop() ? 'explorer-hidden' : 'nav-open');
+      const isExpanded = () =>
+        isDesktop()
+          ? !document.body.classList.contains('explorer-hidden')
+          : document.body.classList.contains('nav-open');
+
+      const sync = () => {
+        toggle?.setAttribute('aria-expanded', String(isExpanded()));
+      };
+
+      toggle?.addEventListener('click', () => {
+        document.body.classList.toggle(stateClass());
+        sync();
+      });
+
+      // Mobile-only: backdrop tap and ESC close the drawer. (Desktop has no
+      // backdrop, and ESC collapsing the panel out from under you would feel
+      // jarring — leave it as a deliberate icon click there.)
+      const closeMobile = () => {
+        if (!isDesktop()) {
+          document.body.classList.remove('nav-open');
+          sync();
+        }
+      };
+      backdrop?.addEventListener('click', closeMobile);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMobile();
+      });
+
+      // Mobile-only: tapping a link inside the drawer closes it for snappiness
+      document.querySelectorAll('#explorer a').forEach((a) => {
+        a.addEventListener('click', closeMobile);
+      });
+
+      // On significant resize, drop both state classes so each breakpoint
+      // boots up in its natural default (desktop visible, mobile hidden)
+      let lastWidth = window.innerWidth;
+      window.addEventListener('resize', () => {
+        if (Math.abs(window.innerWidth - lastWidth) > 100) {
+          document.body.classList.remove('nav-open', 'explorer-hidden');
+          sync();
+        }
+        lastWidth = window.innerWidth;
+      });
+
+      sync();
+    </script>
+
+    <script>
+      // Command palette — terminal-flavored fuzzy nav across all content.
+      // Vanilla JS, no framework. The index is rendered as JSON in the page;
+      // we parse it once on first open. Filtering is substring + token AND;
+      // ranking favors title matches, then hints/kind.
+      type Entry = {
+        kind: 'project' | 'tool' | 'devlog' | 'article' | 'page';
+        title: string;
+        url: string;
+        hint?: string;
+        date?: number;
+      };
+
+      const palette = document.getElementById('search-palette') as HTMLDialogElement | null;
+      const input = document.getElementById('search-input') as HTMLInputElement | null;
+      const list = document.getElementById('search-results') as HTMLUListElement | null;
+      const toggle = document.getElementById('search-toggle');
+      const indexNode = document.getElementById('search-index');
+
+      if (palette && input && list && indexNode) {
+        let entries: Entry[] = [];
+        try {
+          entries = JSON.parse(indexNode.textContent || '[]');
+        } catch {
+          entries = [];
+        }
+        let active = 0;
+        let current: Entry[] = entries.slice(0, 12);
+
+        const score = (entry: Entry, q: string): number => {
+          if (!q) return 0;
+          const hay = `${entry.title} ${entry.hint ?? ''} ${entry.kind}`.toLowerCase();
+          const title = entry.title.toLowerCase();
+          const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+          let s = 0;
+          for (const t of tokens) {
+            if (!hay.includes(t)) return -1;
+            if (title.startsWith(t)) s += 100;
+            else if (title.includes(t)) s += 50;
+            else s += 10;
+          }
+          return s;
+        };
+
+        const filter = (q: string): Entry[] => {
+          if (!q.trim()) return entries.slice(0, 12);
+          const scored = entries
+            .map((e) => ({ e, s: score(e, q) }))
+            .filter((x) => x.s >= 0)
+            .sort((a, b) => b.s - a.s);
+          return scored.slice(0, 12).map((x) => x.e);
+        };
+
+        const render = () => {
+          if (!list) return;
+          list.innerHTML = '';
+          if (current.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'palette-empty';
+            li.textContent = '// no matches';
+            list.appendChild(li);
+            return;
+          }
+          current.forEach((entry, i) => {
+            const li = document.createElement('li');
+            li.className = 'palette-row';
+            li.setAttribute('role', 'option');
+            li.dataset.url = entry.url;
+            if (i === active) {
+              li.classList.add('active');
+              li.setAttribute('aria-selected', 'true');
+            }
+            const arrow = document.createElement('span');
+            arrow.className = 'palette-arrow';
+            arrow.textContent = i === active ? '→' : ' ';
+            const kind = document.createElement('span');
+            kind.className = `palette-kind kind-${entry.kind}`;
+            kind.textContent = `[${entry.kind}]`;
+            const title = document.createElement('span');
+            title.className = 'palette-title';
+            title.textContent = entry.title;
+            li.append(arrow, kind, title);
+            if (entry.hint) {
+              const hint = document.createElement('span');
+              hint.className = 'palette-hint';
+              hint.textContent = entry.hint;
+              li.appendChild(hint);
+            }
+            li.addEventListener('mouseenter', () => {
+              active = i;
+              update(false);
+            });
+            li.addEventListener('click', () => {
+              navigate(entry.url);
+            });
+            list.appendChild(li);
+          });
+        };
+
+        const update = (resetActive: boolean) => {
+          current = filter(input!.value);
+          if (resetActive) active = 0;
+          if (active >= current.length) active = Math.max(0, current.length - 1);
+          render();
+        };
+
+        const navigate = (url: string) => {
+          palette!.close();
+          window.location.href = url;
+        };
+
+        const open = () => {
+          if (!palette || palette.open) return;
+          input!.value = '';
+          active = 0;
+          current = entries.slice(0, 12);
+          render();
+          palette.showModal();
+          // Defer focus past the showModal frame so iOS Safari grabs the caret.
+          requestAnimationFrame(() => input!.focus());
+        };
+
+        toggle?.addEventListener('click', open);
+
+        // Keyboard shortcuts: ⌘K / Ctrl+K and "/" (when not already typing
+        // somewhere). Skip "/" if focus is in an editable target.
+        document.addEventListener('keydown', (e) => {
+          const isMac = navigator.platform.toLowerCase().includes('mac');
+          const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+          if (cmdOrCtrl && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            open();
+            return;
+          }
+          if (palette!.open) return;
+          if (e.key === '/' && !isEditableTarget(e.target)) {
+            e.preventDefault();
+            open();
+          }
+        });
+
+        function isEditableTarget(t: EventTarget | null): boolean {
+          if (!(t instanceof HTMLElement)) return false;
+          const tag = t.tagName;
+          return tag === 'INPUT' || tag === 'TEXTAREA' || t.isContentEditable;
+        }
+
+        // Within the palette: filter as you type; arrow keys move selection;
+        // Enter opens the active row; Esc closes (also handled natively by dialog).
+        input.addEventListener('input', () => update(true));
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            active = Math.min(current.length - 1, active + 1);
+            render();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            active = Math.max(0, active - 1);
+            render();
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const target = current[active];
+            if (target) navigate(target.url);
+          }
+        });
+
+        // Backdrop click closes
+        palette.addEventListener('click', (e) => {
+          if (e.target === palette) palette.close();
+        });
+      }
+    </script>
+  </body>
+</html>
