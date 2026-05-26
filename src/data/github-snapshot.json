@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-05-26T09:59:51.616Z",
+  "updatedAt": "2026-05-26T15:35:32.253Z",
   "user": {
     "login": "bradtraversy",
     "name": "Brad Traversy",
     "publicRepos": 321,
-    "followers": 75902,
-    "totalStars": 166083
+    "followers": 75900,
+    "totalStars": 166088
   },
   "topRepos": [
     {
@@ -13,7 +13,7 @@
       "fullName": "bradtraversy/design-resources-for-developers",
       "description": "Curated list of design and UI resources from stock photos, web templates, CSS frameworks, UI libraries, tools and much more",
       "url": "https://github.com/bradtraversy/design-resources-for-developers",
-      "stars": 65771,
+      "stars": 65772,
       "forks": 12054,
       "language": null,
       "pushedAt": "2026-05-24T10:07:48Z"
@@ -23,7 +23,7 @@
       "fullName": "bradtraversy/50projects50days",
       "description": "50+ mini web projects using HTML, CSS & JS",
       "url": "https://github.com/bradtraversy/50projects50days",
-      "stars": 40571,
+      "stars": 40574,
       "forks": 9762,
       "language": "CSS",
       "pushedAt": "2025-02-26T13:49:39Z"
@@ -91,6 +91,24 @@
   ],
   "recentEvents": [
     {
+      "type": "WatchEvent",
+      "repo": "Open-Dev-Society/OpenStock",
+      "createdAt": "2026-05-26T11:42:53Z",
+      "details": "starred this repo"
+    },
+    {
+      "type": "WatchEvent",
+      "repo": "Axorax/awesome-free-apps",
+      "createdAt": "2026-05-26T11:42:37Z",
+      "details": "starred this repo"
+    },
+    {
+      "type": "PushEvent",
+      "repo": "bradtraversy/bradtraversy.dev",
+      "createdAt": "2026-05-26T11:16:59Z",
+      "details": "pushed to main"
+    },
+    {
       "type": "IssueCommentEvent",
       "repo": "bradtraversy/design-resources-for-developers",
       "createdAt": "2026-05-24T10:08:07Z",
@@ -131,28 +149,10 @@
       "repo": "bradtraversy/design-resources-for-developers",
       "createdAt": "2026-05-24T09:31:36Z",
       "details": "commented on issue #1593"
-    },
-    {
-      "type": "PullRequestEvent",
-      "repo": "bradtraversy/design-resources-for-developers",
-      "createdAt": "2026-05-24T09:20:00Z",
-      "details": "closed pull request #1593"
-    },
-    {
-      "type": "PushEvent",
-      "repo": "bradtraversy/bradtraversy.dev",
-      "createdAt": "2026-05-23T12:23:31Z",
-      "details": "pushed to main"
-    },
-    {
-      "type": "PushEvent",
-      "repo": "bradtraversy/bradtraversy.dev",
-      "createdAt": "2026-05-23T10:34:55Z",
-      "details": "pushed to main"
     }
   ],
   "contributions": {
-    "total": 755,
+    "total": 756,
     "weeks": [
       [
         0,
@@ -625,7 +625,7 @@
       [
         3,
         0,
-        0
+        1
       ]
     ]
   }
