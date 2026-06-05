@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-06-04T20:07:49.261Z",
+  "updatedAt": "2026-06-05T03:57:14.218Z",
   "user": {
     "login": "bradtraversy",
     "name": "Brad Traversy",
     "publicRepos": 321,
-    "followers": 75961,
-    "totalStars": 166276
+    "followers": 75955,
+    "totalStars": 166278
   },
   "topRepos": [
     {
@@ -24,7 +24,7 @@
       "description": "50+ mini web projects using HTML, CSS & JS",
       "url": "https://github.com/bradtraversy/50projects50days",
       "stars": 40580,
-      "forks": 9755,
+      "forks": 9754,
       "language": "CSS",
       "pushedAt": "2025-02-26T13:49:39Z"
     },
@@ -625,6 +625,7 @@
       [
         0,
         1,
+        0,
         0,
         0,
         0
